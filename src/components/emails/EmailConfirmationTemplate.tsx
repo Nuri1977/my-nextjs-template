@@ -37,22 +37,21 @@ const PropDefaults: EmailConfirmTemProps = {
 };
 
 // Email content constants
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://shalomradio.org";
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const organizationName = process.env.NEXT_PUBLIC_ORG_NAME || "Next.js Template";
 
 export const EmailConfirmTem = ({ user, url, token }: EmailConfirmTemProps) => {
   // Email content
-  const emailTitle = "Confirm Your Email for Shalom Radio";
-  const header1 = "Welcome to Shalom Radio";
+  const emailTitle = `Confirm Your Email for ${organizationName}`;
+  const header1 = `Welcome to ${organizationName}`;
   const subheader1 = "Please confirm your email to get started";
-  const firstParagraph = `Hello ${user?.name || "there"},\n\nThank you for signing up with Shalom Radio. To complete your registration and access all our features, please confirm your email address.`;
+  const firstParagraph = `Hello ${user?.name || "there"},\n\nThank you for signing up with ${organizationName}. To complete your registration and access all our features, please confirm your email address.`;
   const confirmEmail = "Confirm Email";
   const confirmUrl = `${url}?token=${token}`;
-  const secondParagraph =
-    "If you did not create an account with Shalom Radio, you can safely ignore this email.";
+  const secondParagraph = `If you did not create an account with ${organizationName}, you can safely ignore this email.`;
   const regards = "Best regards,";
-  const teamName = "The Shalom Radio Team";
-  const footerIgnore =
-    "This email was sent to you because you registered for a Shalom Radio account.";
+  const teamName = `The ${organizationName} Team`;
+  const footerIgnore = `This email was sent to you because you registered for a ${organizationName} account.`;
   const footerContact = "Contact Us";
   const footerPrivacy = "Privacy Policy";
 
@@ -66,7 +65,7 @@ export const EmailConfirmTem = ({ user, url, token }: EmailConfirmTemProps) => {
             <Img
               width={146}
               src={`${baseUrl}/logo/logo.png`}
-              alt="Shalom Radio Logo"
+              alt={`${organizationName} Logo`}
             />
           </Section>
 
@@ -117,11 +116,10 @@ export const EmailConfirmTem = ({ user, url, token }: EmailConfirmTemProps) => {
           <Img
             width={111}
             src={`${baseUrl}/logo/logo.png`}
-            alt="Shalom Radio Logo"
+            alt={`${organizationName} Logo`}
           />
           <Text style={footerAddress}>
-            <strong>Shalom Radio</strong>, Broadcasting spiritual content
-            worldwide
+            <strong>{organizationName}</strong>
           </Text>
 
           <Text></Text>

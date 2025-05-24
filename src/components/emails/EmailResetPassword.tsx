@@ -37,7 +37,8 @@ const PropDefaults: EmailResetPasswordProps = {
 };
 
 // Email content constants
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://shalomradio.org";
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const organizationName = process.env.NEXT_PUBLIC_ORG_NAME || "Next.js Template";
 
 export const EmailResetPassword = ({
   user,
@@ -45,10 +46,10 @@ export const EmailResetPassword = ({
   token,
 }: EmailResetPasswordProps) => {
   // Email content
-  const emailTitle = "Reset Your Password for Shalom Radio";
-  const header1 = "Shalom Radio";
+  const emailTitle = `Reset Your Password for ${organizationName}`;
+  const header1 = organizationName;
   const subheader1 = "Password Reset Request";
-  const firstParagraph = `Hello ${user?.name || "there"},\n\nWe received a request to reset your password for your Shalom Radio account. If you didn't make this request, you can safely ignore this email.`;
+  const firstParagraph = `Hello ${user?.name || "there"},\n\nWe received a request to reset your password for your ${organizationName} account. If you didn't make this request, you can safely ignore this email.`;
   const resetButton = "Reset Password";
   const resetUrl = `${url}?token=${token}`;
   const secondParagraph =
@@ -56,9 +57,8 @@ export const EmailResetPassword = ({
   const thirdParagraph =
     "If you're having trouble clicking the button, copy and paste the URL below into your web browser:";
   const regards = "Best regards,";
-  const teamName = "The Shalom Radio Team";
-  const footerIgnore =
-    "This email was sent to you because a password reset was requested for your Shalom Radio account.";
+  const teamName = `The ${organizationName} Team`;
+  const footerIgnore = `This email was sent to you because a password reset was requested for your ${organizationName} account.`;
   const footerContact = "Contact Us";
   const footerPrivacy = "Privacy Policy";
 
@@ -72,7 +72,7 @@ export const EmailResetPassword = ({
             <Img
               width={146}
               src={`${baseUrl}/logo/logo.png`}
-              alt="Shalom Radio Logo"
+              alt={`${organizationName} Logo`}
             />
           </Section>
 
@@ -134,11 +134,10 @@ export const EmailResetPassword = ({
           <Img
             width={111}
             src={`${baseUrl}/logo/logo.png`}
-            alt="Shalom Radio Logo"
+            alt={`${organizationName} Logo`}
           />
           <Text style={footerAddress}>
-            <strong>Shalom Radio</strong>, Broadcasting spiritual content
-            worldwide
+            <strong>{organizationName}</strong>
           </Text>
 
           <Text></Text>

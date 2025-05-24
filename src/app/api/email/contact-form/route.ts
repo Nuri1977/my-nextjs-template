@@ -1,8 +1,7 @@
 import EmailContactTemplate from "@/components/emails/EmailContactTemplate";
+import { emailService } from "@/services/server/email-service";
 import { render } from "@react-email/render";
 import { NextRequest, NextResponse } from "next/server";
-
-const brevoApiKey = process.env.NEXT_BREVO_API_KEY!;
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -15,50 +14,45 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const newHtml = EmailContactTemplate({
-    name,
-    email,
-    message,
-  });
-  const htmlContent = await render(newHtml);
-  const data = {
-    sender: {
-      email: process.env.ADMIN_EMAIL,
-      name: "shalom-radio",
-    },
-    to: [
-      {
-        email: process.env.ADMIN_EMAIL || "admin@shalom-radio.com",
-        name: "Shalom Radio Admin",
+  try {
+    const emailTemplate = EmailContactTemplate({
+      name,
+      email,
+      message,
+    });
+    const htmlContent = await render(emailTemplate);
+
+    const result = await emailService.sendEmail({
+      fromEmail: process.env.ADMIN_EMAIL || "noreply@example.com",
+      fromName: process.env.EMAIL_FROM_NAME || "Next.js Template",
+      toEmail: process.env.ADMIN_EMAIL || "admin@example.com",
+      toName: "Admin",
+      subject: "New Contact Form Submission",
+      htmlContent,
+      replyTo: {
+        email,
+        name,
       },
-    ],
-    subject: "New Contact Form Submission",
-    htmlContent: htmlContent,
-    replyTo: {
-      email: email,
-      name: name,
-    },
-  };
+    });
 
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "api-key": brevoApiKey,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+    if (result.success) {
+      console.log("Contact form email sent successfully");
+      return NextResponse.json(
+        { data: result.data, error: null },
+        { status: 200 }
+      );
+    }
 
-  if (res.ok) {
-    console.log("Contact form email sent successfully");
+    console.error("Failed to send contact form email:", result.error);
     return NextResponse.json(
-      { data: await res.json(), error: null },
-      { status: res.status }
+      { data: null, error: result.error },
+      { status: 500 }
+    );
+  } catch (error) {
+    console.error("Error sending contact form email:", error);
+    return NextResponse.json(
+      { data: null, error: "Failed to send contact form email" },
+      { status: 500 }
     );
   }
-  return NextResponse.json(
-    { data: null, error: await res.json() },
-    { status: res.status }
-  );
 }

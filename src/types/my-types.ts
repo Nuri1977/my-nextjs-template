@@ -1,5 +1,3 @@
-import { Program, Schedule, Stream, news } from "@prisma/client";
-
 export type FileUploadThing = {
   name: string;
   size: number;
@@ -21,22 +19,33 @@ export type FileDeleteResponse = {
   deletedCount: number;
 };
 
-export interface ProgramExt extends Omit<Program, "coverImage"> {
-  coverImage: FileUploadThing | null;
+// Email service types
+
+export interface EmailConfig {
+  smtpConfig: {
+    host: string;
+    port: number;
+    secure: boolean;
+    auth: {
+      user: string;
+      pass: string;
+    };
+  };
+  defaultFromEmail: string;
+  defaultFromName: string;
 }
 
-export interface NewsExt extends Omit<news, "coverImage"> {
-  coverImage: FileUploadThing | null;
+export interface EmailData {
+  fromEmail: string;
+  fromName?: string;
+  toEmail: string;
+  toName?: string;
+  subject: string;
+  htmlContent: string;
+  replyTo?: {
+    email: string;
+    name?: string;
+  };
 }
 
-export interface ScheduleExt extends Schedule {
-  program: ProgramExt;
-}
-
-export interface StreamExt extends Omit<Stream, "thumbnail"> {
-  thumbnail: FileUploadThing | null;
-  program?: ProgramExt | null;
-}
-
-// Form data type for creating/editing streams without required fields like id, createdAt, updatedAt
-export type StreamFormData = Omit<StreamExt, "id" | "createdAt" | "updatedAt">;
+// Add other types below this line...

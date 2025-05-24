@@ -24,11 +24,12 @@ interface EmailContactTemplateProps {
 const PropDefaults: EmailContactTemplateProps = {
   name: "John Doe",
   email: "john@example.com",
-  message: "Hello, I'd like to learn more about Shalom Radio.",
+  message: "Hello, I'd like to learn more about your service.",
 };
 
 // Email content constants
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://shalomradio.org";
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const organizationName = process.env.NEXT_PUBLIC_ORG_NAME || "Next.js Template";
 
 export const EmailContactTemplate = ({
   name,
@@ -41,7 +42,7 @@ export const EmailContactTemplate = ({
   const subheader1 = "A new message from your website";
   const firstParagraph = `You have received a new message from ${name} (${email}).`;
   const regards = "Best regards,";
-  const teamName = "The Shalom Radio System";
+  const teamName = `The ${organizationName} System`;
   const footerContact = "Contact Us";
   const footerPrivacy = "Privacy Policy";
 
@@ -55,7 +56,7 @@ export const EmailContactTemplate = ({
             <Img
               width={146}
               src={`${baseUrl}/logo/logo.png`}
-              alt="Shalom Radio Logo"
+              alt={`${organizationName} Logo`}
             />
           </Section>
 
@@ -100,11 +101,10 @@ export const EmailContactTemplate = ({
           <Img
             width={111}
             src={`${baseUrl}/logo/logo.png`}
-            alt="Shalom Radio Logo"
+            alt={`${organizationName} Logo`}
           />
           <Text style={footerAddress}>
-            <strong>Shalom Radio</strong>, Broadcasting spiritual content
-            worldwide
+            <strong>{organizationName}</strong>
           </Text>
 
           <Text></Text>

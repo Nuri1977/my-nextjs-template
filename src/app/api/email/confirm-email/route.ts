@@ -1,8 +1,7 @@
 import EmailConfirmTem from "@/components/emails/EmailConfirmationTemplate";
+import { emailService } from "@/services/server/email-service";
 import { render } from "@react-email/render";
 import { NextRequest, NextResponse } from "next/server";
-
-const brevoApiKey = process.env.NEXT_BREVO_API_KEY!;
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -15,50 +14,41 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const newHtml = EmailConfirmTem({
-    user,
-    url,
-    token,
-  });
-  const htmlContent = await render(newHtml);
-  const data = {
-    sender: {
-      email: process.env.ADMIN_EMAIL,
-      name: "shalom-radio",
-    },
-    to: [
-      {
-        email: user?.email,
-        name: user?.name,
-      },
-      // {
-      //   email,
-      //   name,
-      // },
-    ],
-    subject: "Confirm your email address",
-    htmlContent: htmlContent,
-  };
+  try {
+    const emailTemplate = EmailConfirmTem({
+      user,
+      url,
+      token,
+    });
+    const htmlContent = await render(emailTemplate);
 
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "api-key": brevoApiKey,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+    const result = await emailService.sendEmail({
+      fromEmail: process.env.ADMIN_EMAIL || "noreply@example.com",
+      fromName: process.env.EMAIL_FROM_NAME || "Next.js Template",
+      toEmail: user?.email,
+      toName: user?.name,
+      subject: "Confirm your email address",
+      htmlContent,
+    });
 
-  if (res.ok) {
-    console.log("Email sent successfully");
+    if (result.success) {
+      console.log("Email confirmation sent successfully");
+      return NextResponse.json(
+        { data: result.data, error: null },
+        { status: 200 }
+      );
+    }
+
+    console.error("Failed to send confirmation email:", result.error);
     return NextResponse.json(
-      { data: await res.json(), error: null },
-      { status: res.status }
+      { data: null, error: result.error },
+      { status: 500 }
+    );
+  } catch (error) {
+    console.error("Error sending confirmation email:", error);
+    return NextResponse.json(
+      { data: null, error: "Failed to send confirmation email" },
+      { status: 500 }
     );
   }
-  return NextResponse.json(
-    { data: null, error: await res.json() },
-    { status: res.status }
-  );
 }

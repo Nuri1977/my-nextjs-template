@@ -1,11 +1,10 @@
 # Repository Custom Instructions for GitHub Copilot
 
-- As a programming agent, I assist with code editing, generation, and problem-solving in this Shalom Radio project. I provide complete code implementation rather than partial snippets.
-- This project is a web application named "Shalom Radio" built using Next.js and TypeScript.
+- As a programming agent, I assist with code editing, generation, and problem-solving in this project. I provide complete code implementation rather than partial snippets.
+- This project is a web application built using Next.js and TypeScript.
 - The project uses Tailwind CSS for styling, with custom configurations defined in `tailwind.config.ts`.
 - PostgreSQL is the database, hosted on Neon.tech, and connects via SSL. The connection string is stored in the `DATABASE_URL` environment variable.
 - Prisma is used as the ORM, with the schema defined in `prisma/schema.prisma`.
-- The project includes AI-related functionality, with code located in the `src/ai/` directory.
 - The project uses shadcn/ui (also known as "chadcn") component library:
   - The `src/components/ui/` directory contains reusable UI components built with shadcn/ui
   - All UI components are built following the shadcn/ui component patterns using Radix UI primitives

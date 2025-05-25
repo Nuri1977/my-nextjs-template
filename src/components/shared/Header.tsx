@@ -19,6 +19,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useIsAdmin } from "@/helpers/isAdminClient";
 import { navLinks } from "@/utils/constants";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -122,7 +123,9 @@ export function Header() {
                   size="icon"
                   className="rounded-full border h-9 w-9 p-0"
                 >
-                  {!isPending && session ? (
+                  {isPending ? (
+                    <Skeleton className="h-8 w-8 rounded-full bg-muted-foreground/20" />
+                  ) : session ? (
                     <Avatar className="h-8 w-8">
                       <AvatarFallback>{getUserInitials()}</AvatarFallback>
                     </Avatar>

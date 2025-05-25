@@ -50,6 +50,42 @@
     - `force-dynamic` now sets a `no-store` default to the fetch cache
     - Request-specific APIs like `cookies()` and `headers()` are now async
     - Route Handler's params object is now a Promise that must be awaited
+- The project uses TanStack Query (React Query) for data fetching and state management:
+
+  - Query client is configured in `src/lib/query-client.ts`
+  - Use the `useQuery` and `useMutation` hooks from `@tanstack/react-query` for data operations
+  - Always define query keys as constants in a separate file (e.g., `src/lib/query-keys.ts`)
+  - Follow the pattern of defining query functions in a separate file (e.g., `src/lib/queries/`)
+  - Use proper TypeScript types for query and mutation responses
+  - Implement proper error handling and loading states
+  - Use optimistic updates for mutations when appropriate
+  - Example query implementation:
+
+    ```tsx
+    // In query-keys.ts
+    export const programKeys = {
+      all: ["programs"] as const,
+      detail: (id: string) => [...programKeys.all, id] as const,
+    };
+
+    // In queries/programs.ts
+    export const getProgram = async (id: string) => {
+      const response = await fetch(`/api/programs/${id}`);
+      if (!response.ok) throw new Error("Failed to fetch program");
+      return response.json();
+    };
+
+    // In component
+    const {
+      data: program,
+      isLoading,
+      error,
+    } = useQuery({
+      queryKey: programKeys.detail(id),
+      queryFn: () => getProgram(id),
+    });
+    ```
+
 - Authentication is handled using the Better Auth library:
   - Server-side auth is configured in `src/lib/auth.ts` using `betterAuth()` with the Prisma adapter
   - Client-side auth functionality is available through `authClient` from `src/lib/auth-client.ts`

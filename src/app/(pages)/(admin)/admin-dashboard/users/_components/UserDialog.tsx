@@ -14,17 +14,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-
-type User = {
-  id: string;
-  name: string | null;
-  email: string | null;
-  emailVerified: boolean | null;
-  image: string | null;
-  isAdmin: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
+import { User } from "@prisma/client";
+import {
+  useCreateUser,
+  useUpdateUser,
+} from "@/controllers/users/users-controller";
 
 interface UserDialogProps {
   user: User | null;
@@ -32,6 +26,8 @@ interface UserDialogProps {
   onClose: () => void;
   onSaved: () => void;
   isNewUser: boolean;
+  onCreateUser: (userData: Partial<User>) => void;
+  onUpdateUser: (data: { id: string; data: Partial<User> }) => void;
 }
 
 export function UserDialog({
@@ -40,6 +36,8 @@ export function UserDialog({
   onClose,
   onSaved,
   isNewUser,
+  onCreateUser,
+  onUpdateUser,
 }: UserDialogProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState<{
@@ -53,8 +51,14 @@ export function UserDialog({
     password: "",
     isAdmin: false,
   });
-  const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Get mutation states
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+
+  const isSaving = createUser.isPending || updateUser.isPending;
+  const mutationError = createUser.error || updateUser.error;
 
   useEffect(() => {
     // Reset form when dialog opens/closes or user changes
@@ -76,6 +80,20 @@ export function UserDialog({
     }
     setErrors({});
   }, [isOpen, user, isNewUser]);
+
+  // Handle mutation errors
+  useEffect(() => {
+    if (mutationError) {
+      toast({
+        title: "Error",
+        description:
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Failed to save user",
+        variant: "destructive",
+      });
+    }
+  }, [mutationError, toast]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -122,14 +140,7 @@ export function UserDialog({
       return;
     }
 
-    setIsSaving(true);
     try {
-      const endpoint = isNewUser
-        ? "/api/admin/users"
-        : `/api/admin/users/${user?.id}`;
-
-      const method = isNewUser ? "POST" : "PATCH";
-
       const payload: Record<string, any> = {
         name: formData.name || null,
         email: formData.email,
@@ -141,17 +152,10 @@ export function UserDialog({
         payload.password = formData.password;
       }
 
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save user");
+      if (isNewUser) {
+        await onCreateUser(payload);
+      } else if (user?.id) {
+        await onUpdateUser({ id: user.id, data: payload });
       }
 
       toast({
@@ -168,8 +172,6 @@ export function UserDialog({
         description: error.message || "Failed to save user",
         variant: "destructive",
       });
-    } finally {
-      setIsSaving(false);
     }
   };
 

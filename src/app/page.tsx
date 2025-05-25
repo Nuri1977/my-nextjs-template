@@ -41,7 +41,7 @@ export default function HomePage() {
           </Button>
           <Button asChild variant="outline" size="lg">
             <Link
-              href="https://github.com/yourusername/my-nextjs-template"
+              href="https://github.com/Nuri1977/my-nextjs-template"
               target="_blank"
               rel="noopener noreferrer"
             >

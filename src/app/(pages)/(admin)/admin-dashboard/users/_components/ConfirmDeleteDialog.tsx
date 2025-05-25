@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,23 +12,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-
-type User = {
-  id: string;
-  name: string | null;
-  email: string | null;
-  emailVerified: boolean | null;
-  image: string | null;
-  isAdmin: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
+import { User } from "@prisma/client";
+import { useDeleteUser } from "@/controllers/users/users-controller";
 
 interface ConfirmDeleteDialogProps {
   user: User | null;
   isOpen: boolean;
   onClose: () => void;
   onDeleted: () => void;
+  onDeleteUser: (id: string) => void;
 }
 
 export function ConfirmDeleteDialog({
@@ -36,9 +28,26 @@ export function ConfirmDeleteDialog({
   isOpen,
   onClose,
   onDeleted,
+  onDeleteUser,
 }: ConfirmDeleteDialogProps) {
   const { toast } = useToast();
-  const [isDeleting, setIsDeleting] = useState(false);
+  const deleteUser = useDeleteUser();
+  const isDeleting = deleteUser.isPending;
+
+  // Handle mutation errors
+  useEffect(() => {
+    if (deleteUser.error) {
+      toast({
+        title: "Error",
+        description:
+          deleteUser.error instanceof Error
+            ? deleteUser.error.message
+            : "Failed to delete user",
+        variant: "destructive",
+      });
+      onClose();
+    }
+  }, [deleteUser.error, toast, onClose]);
 
   if (!user) {
     return null;
@@ -47,17 +56,8 @@ export function ConfirmDeleteDialog({
   const handleDelete = async () => {
     if (!user?.id) return;
 
-    setIsDeleting(true);
     try {
-      const response = await fetch(`/api/admin/users/${user.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete user");
-      }
-
+      await onDeleteUser(user.id);
       toast({
         title: "User Deleted",
         description: "The user has been successfully deleted.",
@@ -71,8 +71,6 @@ export function ConfirmDeleteDialog({
         variant: "destructive",
       });
       onClose();
-    } finally {
-      setIsDeleting(false);
     }
   };
 

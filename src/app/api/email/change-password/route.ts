@@ -1,5 +1,5 @@
 import EmailResetPassword from "@/components/emails/EmailResetPassword";
-import { emailService } from "@/services/server/email-service";
+import { emailService } from "@/services/shared/email-service";
 import { render } from "@react-email/render";
 import { NextRequest, NextResponse } from "next/server";
 

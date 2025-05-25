@@ -24,51 +24,36 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { UserDialog } from "./UserDialog";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
-
-type User = {
-  id: string;
-  name: string | null;
-  email: string | null;
-  emailVerified: boolean | null;
-  image: string | null;
-  isAdmin: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
+import {
+  useUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+} from "@/controllers/users/users-controller";
+import { User } from "@prisma/client";
 
 export function UserTable() {
   const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/admin/users");
-      if (!response.ok) {
-        throw new Error("Failed to fetch users");
-      }
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch users. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: users = [], isLoading, isError, error, refetch } = useUsers();
 
+  // Debug effect
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    console.log("UserTable - Current users:", users);
+    console.log("UserTable - Loading state:", isLoading);
+    console.log("UserTable - Error state:", isError);
+    if (error) {
+      console.error("UserTable - Error:", error);
+    }
+  }, [users, isLoading, isError, error]);
+
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+  const deleteUser = useDeleteUser();
 
   const handleCreateUser = () => {
     setSelectedUser(null);
@@ -88,15 +73,35 @@ export function UserTable() {
   };
 
   const handleUserSaved = () => {
-    fetchUsers();
     setIsDialogOpen(false);
+    refetch(); // Refresh the router to invalidate cache
   };
 
   const handleUserDeleted = () => {
-    fetchUsers();
     setIsDeleteDialogOpen(false);
     setSelectedUser(null);
+    refetch(); // Refresh the router to invalidate cache
   };
+
+  const handleRefresh = () => {
+    refetch(); // Refresh the router to invalidate cache
+  };
+
+  if (isError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Error</CardTitle>
+          <CardDescription>
+            Failed to load users. Please try again.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={handleRefresh}>Retry</Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -105,7 +110,7 @@ export function UserTable() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>Users</CardTitle>
             <div className="flex items-center mt-2 sm:mt-0 gap-2">
-              <Button variant="outline" size="sm" onClick={fetchUsers}>
+              <Button variant="outline" size="sm" onClick={handleRefresh}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
               </Button>
@@ -120,7 +125,7 @@ export function UserTable() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center items-center p-8">
               <p className="text-muted-foreground">Loading users...</p>
             </div>
@@ -138,7 +143,7 @@ export function UserTable() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.length === 0 ? (
+                  {Array.isArray(users) && users.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={6}
@@ -148,7 +153,7 @@ export function UserTable() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    users.map((user) => (
+                    (users as User[]).map((user: User) => (
                       <TableRow key={user.id}>
                         <TableCell>
                           {user.name || (
@@ -207,7 +212,7 @@ export function UserTable() {
           )}
         </CardContent>
         <CardFooter className="bg-muted/40 border-t p-3 text-sm flex justify-between">
-          <div>Total users: {users.length}</div>
+          <div>Total users: {Array.isArray(users) ? users.length : 0}</div>
         </CardFooter>
       </Card>
 
@@ -217,6 +222,8 @@ export function UserTable() {
         onClose={() => setIsDialogOpen(false)}
         onSaved={handleUserSaved}
         isNewUser={isNewUser}
+        onCreateUser={createUser.mutate}
+        onUpdateUser={updateUser.mutate}
       />
 
       <ConfirmDeleteDialog
@@ -224,6 +231,7 @@ export function UserTable() {
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onDeleted={handleUserDeleted}
+        onDeleteUser={deleteUser.mutate}
       />
     </>
   );
